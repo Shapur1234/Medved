@@ -1,14 +1,13 @@
-import random
 import pygame
 
 import globals
 import gameobject
 
-
 def main():
     pygame.init()
     pygame.display.set_caption("🐻 🐻 🐻 Los Medvědos vrací úderos 🐻 🐻 🐻")
-    pygame.time.set_timer(pygame.USEREVENT + 1, globals.MovementFrequency)
+    pygame.time.set_timer(pygame.USEREVENT + 1, globals.MovementTick)
+    pygame.time.set_timer(pygame.USEREVENT + 2, globals.PhysicsTick)
 
     screen = pygame.display.set_mode((globals.ScreenWidth, globals.ScreenHeight))
 
@@ -16,57 +15,56 @@ def main():
 
 def Play(surface) -> None:
     player = gameobject.Player()
-    svet = gameobject.LevelLayout()
-
-    someFont = pygame.font.SysFont(None, 16)
-
+    gui = gameobject.GUI()
+    world = gameobject.LevelLayout()
+    
     running = True
     while running:
-        displayUpdated = False
-        inputMovement = PosChangeFromInput()
+        gameUpdated = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
             if event.type == pygame.USEREVENT + 1:
-                if inputMovement != gameobject.Vector2D(0, 0):
-                    player.MoveSprite(inputMovement, svet)
+                inputMovement = PosChangeFromInput()
+                if inputMovement.X != 0 or inputMovement.Y != 0:
+                    player.Move(inputMovement, world)
                     inputMovement = gameobject.Vector2D(0, 0)
-                    displayUpdated = True
+                    
+                    gameUpdated = True
+            if event.type == pygame.USEREVENT + 2:
+                world.RemoveExpiredSpawns()
+                gameUpdated = True
+                
 
-        if displayUpdated:
-            currentLevel = svet.GetLevel(player.WorldPos)
+        if gameUpdated:
+            currentLevel = world.GetLevel(player.WorldPos)
             
             currentLevel.Draw(surface)
             currentLevel.Spawns.Draw(surface)
-            player.DrawSprite(surface)
+            player.Draw(surface)
 
             # surface.blit(someFont.render(f"WorldPos:  {player.WorldPos}", True, (255, 0 ,0)), (16, 16))
-            DrawHealthBar(surface, player.Health, player.MaxHealth)
+            gui.DrawHealthBar(surface, player.Health, player.MaxHealth)
 
             pygame.display.flip()
             
-            spawnsCollided = currentLevel.Spawns.GetCollidedSpawnIndexes(player.PlayerSprite.GetRect())
-            for i in currentLevel.Spawns.List:
-                index = currentLevel.Spawns.List.index(i)
-                if index in spawnsCollided:
-                    if i.Type == "Salam":
+            # Check for player colliding with spawns
+            for count, value in enumerate(currentLevel.Spawns.List):
+                if count in currentLevel.Spawns.GetCollidedSpawnIndexes(player.GetRect()):
+                    if value.Type == "Salam":
                         player.ModHealth(10)
-                        currentLevel.Spawns.List.pop(index)
-                    elif i.Type == "Salam impostor":
+                        
+                        currentLevel.Spawns.List.pop(count)
+                    elif value.Type == "Mine":
                         player.ModHealth(-10)
-                        currentLevel.Spawns.List[index].ResetPos()
-
+                        currentLevel.Spawns.List += [gameobject.Spawn("Explosion", value.Pos)]
+                        
+                        currentLevel.Spawns.List.pop(count)
+                        
 def PosChangeFromInput() -> gameobject.Vector2D:
     pressedKeys = pygame.key.get_pressed()
-    return gameobject.Vector2D(1 if pressedKeys[pygame.K_RIGHT] else -1 if pressedKeys[pygame.K_LEFT] else 0, 1 if  pressedKeys[pygame.K_DOWN] else -1 if pressedKeys[pygame.K_UP] else 0)
-
-def DrawHealthBar(surface, health, maxHealth):
-    health_bar_lenght = globals.ScreenWidth // 8
-    health_unit = maxHealth / health_bar_lenght
-    health_bar_state = health // health_unit
-    
-    pygame.draw.rect(surface, globals.ColorRed, pygame.Rect(3, globals.ScreenHeight - 17, health_bar_state, 14))
-    pygame.draw.rect(surface, globals.ColorBlack, pygame.Rect(0, globals.ScreenHeight - 20, health_bar_lenght + 6, 20), 3)
+    return gameobject.Vector2D(0 if pressedKeys[pygame.K_RIGHT] and pressedKeys[pygame.K_LEFT] else 1 if pressedKeys[pygame.K_RIGHT] else -1 if pressedKeys[pygame.K_LEFT] else 0,
+                               0 if pressedKeys[pygame.K_DOWN] and pressedKeys[pygame.K_UP] else 1 if pressedKeys[pygame.K_DOWN] else -1 if pressedKeys[pygame.K_UP] else 0)
 
 main()

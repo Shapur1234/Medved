@@ -1,7 +1,8 @@
 ScreenWidth = 640
 ScreenHeight = 360
 
-MovementFrequency = 5
+MovementTick = 5
+PhysicsTick = 50
 
 ColorBlack = (0,0,0)
 ColorYellow = (255, 255, 0)
