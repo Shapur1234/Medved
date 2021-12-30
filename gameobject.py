@@ -1,6 +1,6 @@
 import globals
 
-from typing import Dict
+from typing import Dict, List
 import pygame
 import random
 import time
@@ -78,7 +78,7 @@ class LevelLayout:
                        [Level("Levels/Les.jpg"), Level("Levels/Lidl.jpeg"), Level("Levels/Sibir.png")]]
         
 
-    def GetLevel(self, pos: Vector2D) -> list[list[Level]]:
+    def GetLevel(self, pos: Vector2D) -> List[List[Level]]:
         try:
             return self.Layout[pos.Y][pos.X]
         except IndexError:
@@ -92,7 +92,7 @@ class LevelLayout:
             item.Spawns.RemoveExpiredSpawns()
             
     Size: Vector2D
-    Layout: list[list[Level]]
+    Layout: List[List[Level]]
 
 
 class SpawnCollection:
@@ -109,7 +109,7 @@ class SpawnCollection:
     def RemoveExpiredSpawns(self) -> None:
         self.List = list(filter(lambda x: True if x.LifeTime < 0 else (time.time() - x.SpawnTime) < x.LifeTime, self.List))
         
-    List: list
+    List: List
 
 
 #----------------------------------------------------------------------------------------------------
