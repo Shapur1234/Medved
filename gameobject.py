@@ -154,9 +154,9 @@ class Spawn(BaseSprite):
             if not self.GetRect().colliderect(playerRect):
                 break
             
-        Type: str
-        SpawnTime: float
-        LifeTime: float
+    Type: str
+    SpawnTime: float
+    LifeTime: float
 
 
 class Player(BaseSprite):
@@ -242,5 +242,5 @@ class GUI:
         
     Scale: float
     
-    HealthBarSize: float
-    HealthBarPos: float
+    HealthBarSize: Vector2D
+    HealthBarPos: Vector2D
